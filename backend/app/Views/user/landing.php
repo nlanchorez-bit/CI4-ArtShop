@@ -150,7 +150,7 @@
         </nav>
         <div class="auth-buttons">
           <a class="btn btn-primary" href="/login">Login</a>
-          <a class="btn btn-primary" href="#signup">Sign Up</a>
+          <a class="btn btn-primary" href="/signup">Sign Up</a>
         </div>
       </div>
     </div>

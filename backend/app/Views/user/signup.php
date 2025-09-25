@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login | Arterion</title>
+  <title>Sign Up | Arterion</title>
   <style>
     body {
       margin: 0;
@@ -17,7 +17,7 @@
       color: #111;
     }
 
-    .login-box {
+    .signup-box {
       background: #fff;
       padding: 30px 25px;
       border-radius: 12px;
@@ -26,7 +26,7 @@
       max-width: 350px;
     }
 
-    .login-box h2 {
+    .signup-box h2 {
       margin-top: 0;
       margin-bottom: 20px;
       font-size: 1.5rem;
@@ -34,7 +34,7 @@
       color: #7f5af0;
     }
 
-    .login-box input {
+    .signup-box input {
       width: 100%;
       padding: 10px;
       margin-bottom: 12px;
@@ -61,33 +61,35 @@
       color: #fff;
     }
 
-    .login-box p {
+    .signup-box p {
       text-align: center;
       margin-top: 15px;
       font-size: 0.9rem;
       color: #555;
     }
 
-    .login-box a {
+    .signup-box a {
       color: #7f5af0;
       text-decoration: none;
     }
 
-    .login-box a:hover {
+    .signup-box a:hover {
       text-decoration: underline;
     }
   </style>
 </head>
 
 <body>
-  <div class="login-box">
-    <h2>Login to Arterion</h2>
+  <div class="signup-box">
+    <h2>Create Your Account</h2>
     <form>
+      <input type="text" placeholder="Full Name" required>
       <input type="email" placeholder="Email" required>
       <input type="password" placeholder="Password" required>
-      <button type="button" class="btn btn-primary">Login</button>
+      <input type="password" placeholder="Confirm Password" required>
+      <button type="button" class="btn btn-primary">Sign Up</button>
     </form>
-    <p>Don’t have an account? <a href="signup.php">Sign up</a></p>
+    <p>Already have an account? <a href="login.php">Login</a></p>
   </div>
 </body>
 
