@@ -214,8 +214,8 @@
   <footer>
     &copy; <span id="year"></span> Arterion. All rights reserved.
     <div class="footer-links">
-      <a href="#moodboard" class="btn btn-primary">Moodboard</a>
-      <a href="#roadmap" class="btn btn-primary">Roadmap</a>
+      <a href="/moodboard" class="btn btn-primary">Moodboard</a>
+      <a href="/roadmap" class="btn btn-primary">Roadmap</a>
     </div>
   </footer>
 
