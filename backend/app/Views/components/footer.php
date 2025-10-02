@@ -1,5 +1,5 @@
 <?php
-
+// components/footer.php
 ?>
 <footer>
     <div class="container" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
@@ -11,11 +11,11 @@
             <?php
             // Moodboard (secondary) and Roadmap (link)
             $text = 'Moodboard';
-            $href = 'moodboard.php';
+            $href = '/moodboard';
             include __DIR__ . '/buttons/button_secondary.php';
 
             $text = 'Roadmap';
-            $href = 'roadmap.php';
+            $href = '/roadmap';
             include __DIR__ . '/buttons/button_link.php';
             ?>
         </div>

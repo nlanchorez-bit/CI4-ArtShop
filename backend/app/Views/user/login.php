@@ -2,93 +2,126 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login | Arterion</title>
+  <?= view('components/head', ['title' => 'Login | Arterion']) ?>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f0ff;
+    main {
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      color: #111;
+      min-height: calc(100vh - 120px);
+      /* leaves space for header/footer */
+      padding: 40px 15px;
+      background: linear-gradient(135deg, #f4f0ff, #ece6ff);
     }
 
-    .login-box {
+    .form-box {
       background: #fff;
-      padding: 30px 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 35px 30px;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 350px;
+      max-width: 380px;
+      animation: fadeIn 0.6s ease-in-out;
     }
 
-    .login-box h2 {
+    .form-box h2 {
       margin-top: 0;
-      margin-bottom: 20px;
-      font-size: 1.5rem;
+      margin-bottom: 22px;
+      font-size: 1.6rem;
       text-align: center;
-      color: #7f5af0;
+      color: var(--brand);
     }
 
-    .login-box input {
+    .form-box input {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
+      padding: 12px;
+      margin-bottom: 14px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 8px;
       font-size: 1rem;
+      transition: 0.2s;
+    }
+
+    .form-box input:focus {
+      border-color: var(--brand);
+      outline: none;
+      box-shadow: 0 0 5px rgba(127, 90, 240, 0.4);
     }
 
     .btn {
       display: inline-block;
       width: 100%;
-      padding: 10px;
-      border-radius: 6px;
+      padding: 12px;
+      border-radius: 8px;
       text-decoration: none;
       font-weight: bold;
       text-align: center;
       border: none;
       cursor: pointer;
       font-size: 1rem;
+      transition: 0.3s;
     }
 
     .btn-primary {
-      background: #7f5af0;
+      background: var(--brand);
       color: #fff;
     }
 
-    .login-box p {
+    .btn-primary:hover {
+      background: #6a47e0;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(127, 90, 240, 0.25);
+    }
+
+    .form-box p {
       text-align: center;
-      margin-top: 15px;
+      margin-top: 16px;
       font-size: 0.9rem;
       color: #555;
     }
 
-    .login-box a {
-      color: #7f5af0;
+    .form-box a {
+      color: var(--brand);
       text-decoration: none;
+      font-weight: 500;
     }
 
-    .login-box a:hover {
+    .form-box a:hover {
       text-decoration: underline;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="login-box">
-    <h2>Login to Arterion</h2>
-    <form>
-      <input type="email" placeholder="Email" required>
-      <input type="password" placeholder="Password" required>
-      <button type="button" class="btn btn-primary">Login</button>
-    </form>
-    <p>Don’t have an account? <a href="signup.php">Sign up</a></p>
-  </div>
+  <?= view('components/header') ?>
+
+  <main>
+    <div class="form-box">
+      <h2>Login to Arterion</h2>
+      <form action="<?= base_url('login') ?>" method="POST">
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+      <p>Don’t have an account?
+        <a href="<?= base_url('signup') ?>">Sign up</a>
+      </p>
+    </div>
+  </main>
+
+  <?= view('components/footer') ?>
 </body>
 
 </html>
