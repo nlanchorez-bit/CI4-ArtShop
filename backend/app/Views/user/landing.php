@@ -6,25 +6,25 @@
 
 <head>
   <?php
-  // optional: override page title
+  // Page title override
   $title = 'Arterion — Art Shop';
   include __DIR__ . '/../components/head.php';
   ?>
 </head>
 
 <body>
-
   <?php
-  // main header (includes login / signup buttons)
+  // main header (with navigation and login/signup buttons)
   include __DIR__ . '/../components/header.php';
   ?>
 
   <main class="container">
     <?php
-    // hero / CTA section
+    // Hero / CTA section
     include __DIR__ . '/../components/cta.php';
     ?>
 
+    <!-- Gallery -->
     <section id="gallery">
       <h3>Gallery</h3>
       <div class="gallery">
@@ -34,11 +34,12 @@
       </div>
     </section>
 
+    <!-- Shop -->
     <section id="shop">
       <h3>Shop</h3>
       <div class="features">
         <?php
-        // include the three named card fragments (each sets $product then includes product_card.php)
+        // include product card fragments
         include __DIR__ . '/../components/cards/card_prints.php';
         include __DIR__ . '/../components/cards/card_originals.php';
         include __DIR__ . '/../components/cards/card_commissions.php';
@@ -46,6 +47,7 @@
       </div>
     </section>
 
+    <!-- Contact -->
     <section id="contact">
       <h3>Contact</h3>
       <form action="mailto:hello@arterionph.com" method="post" enctype="text/plain">
@@ -54,8 +56,7 @@
         <textarea name="message" placeholder="Your message" required></textarea>
 
         <?php
-        // reuse the primary button fragment for the form submit button (renders an <a>, so we use a regular button too)
-        // Keep the included button for visual consistency; also provide an actual submit button.
+        // Reuse primary button fragment for consistent style
         $text = 'Send Message';
         $href = '#';
         include __DIR__ . '/../components/buttons/button_primary.php';
@@ -66,11 +67,12 @@
   </main>
 
   <?php
+  // footer component
   include __DIR__ . '/../components/footer.php';
   ?>
 
   <script>
-    // header/footer components use PHP date() for year, but keep this fallback in case of static footer.
+    // fallback for footer year if component uses <span id="year">
     if (document.getElementById('year')) {
       document.getElementById('year').textContent = new Date().getFullYear();
     }
