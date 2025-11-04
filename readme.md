@@ -54,12 +54,13 @@ This is the repository for my Artshop
 
 ## Overview
 
-This template provides a **minimal CodeIgniter 4 project layout** with conventions for file organization, commit practices, and simple modules.
+The provided codes consist of two PHP view files (landing.php and roadmap.php) for a CodeIgniter 4-based art shop website called Arterion. These files demonstrate a modular frontend structure using reusable components, static content sections, and progress tracking for development.
 
-It is designed to be **easy to start with** and a **reference for adding new features**.
+They are designed to be modular and extensible, serving as entry points for the site's homepage and project roadmap, with emphasis on accessibility, responsive design, and integration with CI4's view system.
 
-* **Purpose**: a clean starting point for CI4 apps.
-* **Audience**: developers who want a predictable structure and quick onboarding.
+Purpose: To render the main landing page with gallery, shop previews, and contact features; and a roadmap page for tracking development milestones, including completed auth pages, ongoing design work, and planned e-commerce/CRUD features.
+Key Technologies: PHP with CodeIgniter 4 views (e.g., <?= view('components/...') ?>), HTML5, inline CSS/JS, SVG icons, and external image sources for a static-to-dynamic prototype.
+Audience: Frontend developers or full-stack teams building creative marketplaces, focusing on quick prototyping, component reuse, and roadmap visualization for agile planning.
 
 ### Key Components
 
@@ -67,9 +68,11 @@ These are **sample modules** included (or suggested) for learning how to add fea
 
 | Component                 | Purpose                                                             | Notes                                                   |
 | ------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------- |
-| **Auth (Sample)**         | Basic login/logout and role check (admin/user).                     | Uses CI4 sessions + MySQL `users` table.                |
-| **CRUD Module**           | Example entity (`Posts` or `Tasks`) with create/read/update/delete. | Demonstrates Controller → Service → Repository pattern. |
-| **Scheduler (Sample)**    | Simple to-do list with due dates.                                   | Shows how to extend with new tables and services.       |
+| **Header (Included)**     | Site-wide navigation bar with login/signup buttons and branding.    | Reusable via view('components/header') ?>;              |
+| **Gallery (Static)**      | Displays sample artwork images in a responsive grid                 | Planned for dynamic filtering via CRUD integration.     |
+| **Shop Cards (Modular)**  | Previews product types (prints, originals, commissions)             | Includes separate fragments                             |
+| **Roadmap (UI)**          | Visual progress tracker for Development                             | Built with SVG icons                                    |
+| **Product Catalog (CRUD)**| Manage artwork/products with variants                               | Planned for shop functionality;                         |
 
  <!-- ! Start simple. Use these modules as **learning samples**; extend or replace them based on your project’s needs. -->
 
@@ -86,13 +89,6 @@ These are **sample modules** included (or suggested) for learning how to add fea
 
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge\&logo=tailwindcss\&logoColor=white)
 ![CodeIgniter](https://img.shields.io/badge/CodeIgniter-EF4223?style=for-the-badge\&logo=codeigniter\&logoColor=white)
-
-#### Databases
-
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge\&logo=mysql\&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge\&logo=postgresql\&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge\&logo=mongodb\&logoColor=white)
-![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge\&logo=firebase\&logoColor=black)
 
 <!-- ! Keep only the used technology -->
 
