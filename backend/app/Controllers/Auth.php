@@ -59,10 +59,10 @@ class Auth extends BaseController
                 'display_name' => trim(($userArr['first_name'] ?? '') . ' ' . ($userArr['last_name'] ?? '')),
             ]);
 
-            // Redirect by user type
+            // Redirect by user type (ADMIN -> /admin)
             $type = strtolower($userArr['type'] ?? 'client');
             if ($type === 'admin') {
-                return redirect()->to('/admin/dashboard');
+                return redirect()->to('/admin');
             }
 
             return redirect()->to('/');
