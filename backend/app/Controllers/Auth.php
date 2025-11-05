@@ -7,6 +7,7 @@ use App\Models\UserModel;
 
 class Auth extends BaseController
 {
+
     public function login()
     {
         $session = session();
@@ -37,7 +38,7 @@ class Auth extends BaseController
                 return redirect()->back()->withInput();
             }
 
-            // Normalize to array (UserModel may return entity or array)
+            // Normalize to array
             $userArr = is_array($user) ? $user : (method_exists($user, 'toArray') ? $user->toArray() : (array) $user);
 
             $passwordHash = $userArr['password_hash'] ?? '';
@@ -80,21 +81,31 @@ class Auth extends BaseController
      */
     public function logout()
     {
+        // Use session helper
         $session = session();
 
+        // Remove only the user key first (safe)
         if ($session->has('user')) {
             $session->remove('user');
         }
 
+        // Destroy session data on server
         $session->destroy();
 
+        // Remove the session cookie from the client — safe defaults used
         $params = session_get_cookie_params();
+
+        // Determine secure flag for cookie
         $secure = ! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+
+        // Path and domain fallback
         $path = $params['path'] ?? '/';
         $domain = $params['domain'] ?? '';
 
+        // Expire cookie
         setcookie(session_name(), '', time() - 3600, $path, $domain, $secure, true);
 
+        // Redirect to home (pretty route)
         return redirect()->to('/');
     }
 
@@ -102,7 +113,7 @@ class Auth extends BaseController
     {
         $session = session();
         $request = $this->request;
-        $validation = \Config\Services::validation();
+        $validation = \Config\Boot::validation();
 
         // Only process when method is POST
         if ($request->getMethod() === 'post') {
