@@ -7,6 +7,10 @@ use CodeIgniter\Router\RouteCollection;
  */
 
 $routes->get('/', 'Users::index');
+$routes->get('admin', 'Admin::index');
+$routes->get('shop', 'Shop::index');
+$routes->get('users', 'Users::index');
+$routes->get('requests', 'Requests::index');
 
 $routes->get('login',  'Auth::login');
 $routes->post('login', 'Auth::login');
