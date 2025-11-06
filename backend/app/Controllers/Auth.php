@@ -8,7 +8,7 @@ use App\Models\UserModel;
 class Auth extends BaseController
 {
     /**
-     * Show Login Page
+     * Show login page (GET /login)
      */
     public function showLoginPage()
     {
@@ -38,6 +38,25 @@ class Auth extends BaseController
      * Handle Login Logic
      */
 
+        // if already logged in, redirect based on role
+        if ($session->has('user')) {
+            $role = strtolower($session->get('user')['role'] ?? 'client');
+            if ($role === 'admin') {
+                return redirect()->to('/admin');
+            }
+            return redirect()->to('/');
+        }
+
+        return view('user/login', [
+            'old'     => $session->getFlashdata('old') ?? [],
+            'errors'  => $session->getFlashdata('errors') ?? [],
+            'success' => $session->getFlashdata('success') ?? null,
+        ]);
+    }
+
+    /**
+     * Handle login (POST /login)
+     */
     public function login()
     {
         $request = service('request');
