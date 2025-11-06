@@ -1,20 +1,16 @@
 <?php
 // app/Views/user/signup.php
-// Sign up page — uses shared head/header/footer via view()
 $title = 'Sign Up | Arterion';
 ?>
 <!doctype html>
 <html lang="en">
 
 <head>
-  <?php // shared head contains brand variables and buttons styling 
-  ?>
   <?= view('components/head', ['title' => $title]) ?>
   <style>
-    /* Signup-specific styles (light, centered card) */
+    /* (your existing styles — unchanged) */
     .auth-layout {
       min-height: calc(100vh - 88px);
-      /* leave space for header/footer */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -44,7 +40,7 @@ $title = 'Sign Up | Arterion';
       text-align: center;
       margin-bottom: 18px;
       color: #666;
-      font-size: 0.95rem;
+      font-size: .95rem
     }
 
     .form-row {
@@ -69,7 +65,7 @@ $title = 'Sign Up | Arterion';
       width: 100%;
       padding: 10px 12px;
       border-radius: 8px;
-      border: 1px solid rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(0, 0, 0, .12);
       font-size: 1rem;
       box-sizing: border-box;
       background: #fff;
@@ -77,7 +73,7 @@ $title = 'Sign Up | Arterion';
 
     input:focus {
       outline: none;
-      box-shadow: 0 6px 18px rgba(127, 90, 240, 0.08);
+      box-shadow: 0 6px 18px rgba(127, 90, 240, .08);
       border-color: var(--brand);
     }
 
@@ -105,12 +101,12 @@ $title = 'Sign Up | Arterion';
       width: 100%;
       background: var(--brand);
       color: #fff;
-      box-shadow: 0 8px 20px rgba(127, 90, 240, 0.12);
+      box-shadow: 0 8px 20px rgba(127, 90, 240, .12);
     }
 
     .small-meta {
       margin-top: 12px;
-      font-size: 0.92rem;
+      font-size: .92rem;
       color: #555;
       text-align: center;
     }
@@ -121,15 +117,29 @@ $title = 'Sign Up | Arterion';
       font-weight: 700;
     }
 
-    .small-meta a:hover {
-      text-decoration: underline;
-    }
-
-    /* Responsive tweaks */
     @media (max-width:460px) {
       .signup-box {
         padding: 20px;
       }
+    }
+
+    .notice {
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: .95rem;
+    }
+
+    .notice.error {
+      background: rgba(239, 69, 101, .06);
+      color: #b82e45;
+      border: 1px solid rgba(239, 69, 101, .08);
+    }
+
+    .notice.success {
+      background: rgba(127, 90, 240, .06);
+      color: var(--brand);
+      border: 1px solid rgba(127, 90, 240, .08);
     }
   </style>
 </head>
@@ -142,15 +152,51 @@ $title = 'Sign Up | Arterion';
       <h2 id="signup-title">Create your Arterion account</h2>
       <div class="signup-sub">Join to save favorites, request commissions, and buy art.</div>
 
-      <form method="post" action="/signup" novalidate>
+      <?php
+      $old = $old ?? [];
+      $errors = $errors ?? [];
+      $success = session()->getFlashdata('success') ?? null;
+      if ($success) : ?>
+        <div class="notice success"><?= esc($success) ?></div>
+      <?php endif; ?>
+
+      <?php if (! empty($errors)) : ?>
+        <div class="notice error" role="alert">
+          <strong>Problems with your input:</strong>
+          <ul style="margin:8px 0 0 18px;">
+            <?php foreach ($errors as $err) : ?>
+              <li><?= esc($err) ?></li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      <?php endif; ?>
+
+      <form method="post" action="<?= site_url('signup') ?>" novalidate>
+        <?= csrf_field() ?>
+
         <div class="form-row">
-          <label for="fullname" class="sr-only">Full name</label>
-          <input id="fullname" name="fullname" type="text" placeholder="Full name" required autocomplete="name" />
+          <label for="first_name" class="sr-only">First name</label>
+          <input id="first_name" name="first_name" type="text" placeholder="First name" required autocomplete="given-name" value="<?= esc($old['first_name'] ?? '') ?>" />
+        </div>
+
+        <div class="form-row">
+          <label for="middle_name" class="sr-only">Middle name</label>
+          <input id="middle_name" name="middle_name" type="text" placeholder="Middle name (optional)" autocomplete="additional-name" value="<?= esc($old['middle_name'] ?? '') ?>" />
+        </div>
+
+        <div class="form-row">
+          <label for="last_name" class="sr-only">Last name</label>
+          <input id="last_name" name="last_name" type="text" placeholder="Last name" required autocomplete="family-name" value="<?= esc($old['last_name'] ?? '') ?>" />
+        </div>
+
+        <div class="form-row">
+          <label for="display_name" class="sr-only">Display name</label>
+          <input id="display_name" name="display_name" type="text" placeholder="Display name (optional)" value="<?= esc($old['display_name'] ?? '') ?>" />
         </div>
 
         <div class="form-row">
           <label for="email" class="sr-only">Email</label>
-          <input id="email" name="email" type="email" placeholder="Email address" required autocomplete="email" />
+          <input id="email" name="email" type="email" placeholder="Email address" required autocomplete="email" value="<?= esc($old['email'] ?? '') ?>" />
         </div>
 
         <div class="form-row">
@@ -169,18 +215,12 @@ $title = 'Sign Up | Arterion';
       </form>
 
       <div class="small-meta">
-        Already have an account?
-        <!-- pretty route (no .php). Header/footer already handle routing/navigation -->
-        <a href="/login">Login</a>
+        Already have an account? <a href="<?= site_url('login') ?>">Login</a>
       </div>
     </div>
   </main>
 
   <?= view('components/footer') ?>
-
-  <script>
-
-  </script>
 </body>
 
 </html>
