@@ -142,32 +142,29 @@ class Auth extends BaseController
         return view('user/signup', ['errors' => $errors, 'old' => $old]);
     }
 
-    /**
-     * Handle Signup Logic
-     */
     public function signup()
     {
         $request = service('request');
         $session = session();
         $validation = \Config\Services::validation();
 
-        // Validation Rules
+        // Validation rules
         $validation->setRule('first_name', 'First name', 'required|min_length[2]|max_length[100]');
-        $validation->setRule('last_name', 'Last name', 'required|min_length[2]|max_length[100]');
-        $validation->setRule('email', 'Email', 'required|valid_email');
-        $validation->setRule('password', 'Password', 'required|min_length[6]');
-        $validation->setRule('password_confirm', 'Password Confirmation', 'required|matches[password]');
+        $validation->setRule('last_name',  'Last name',  'required|min_length[2]|max_length[100]');
+        $validation->setRule('email',      'Email',      'required|valid_email');
+        $validation->setRule('password',   'Password',   'required|min_length[8]');
+        $validation->setRule('confirm_password', 'Confirm Password', 'required|matches[password]');
 
         $post = $request->getPost();
 
-        // If invalid
+        // If validation fails
         if (! $validation->run($post)) {
             $session->setFlashdata('errors', $validation->getErrors());
             $session->setFlashdata('old', $post);
             return redirect()->back()->withInput();
         }
 
-        $userModel = new UserModel();
+        $userModel = new \App\Models\UserModel();
 
         // Prevent duplicate email
         if ($userModel->where('email', $post['email'])->first()) {
@@ -176,29 +173,63 @@ class Auth extends BaseController
             return redirect()->back()->withInput();
         }
 
+        // Prepare display name
+        $displayName = trim($post['display_name'] ?? ($post['first_name'] . ' ' . $post['last_name']));
+
+        // Generate username
+        $baseForUsername = $displayName ?: explode('@', $post['email'])[0];
+        $username = $this->generateUniqueUsername($baseForUsername, $userModel);
+
         // Prepare data for insertion
         $data = [
-            'first_name'     => $post['first_name'],
-            'middle_name'    => $post['middle_name'] ?? null, // nullable
-            'last_name'      => $post['last_name'],
-            'email'          => $post['email'],
-            'password_hash'  => password_hash($post['password'], PASSWORD_DEFAULT),
-            'type'           => 'customer',
-            'account_status' => 1,
-            'email_activated' => 1,
+            'first_name'      => $post['first_name'],
+            'middle_name'     => $post['middle_name'] ?? null,
+            'last_name'       => $post['last_name'],
+            'display_name'    => $displayName,
+            'username'        => $username,
+            'email'           => $post['email'],
+            'password_hash'   => password_hash($post['password'], PASSWORD_DEFAULT),
+            'role'            => 'client',
+            'is_artist'       => 0,
+            'account_status'  => 1,
+            'email_activated' => 0,
+            'newsletter'      => 1,
         ];
 
-        // Insert to database
+        // Insert user
         $inserted = $userModel->insert($data);
 
         if (! $inserted) {
-            $session->setFlashdata('errors', ['general' => 'Could not create account. Please try again.']);
+            $errors = $userModel->errors() ?? ['general' => 'Registration failed, please try again.'];
+            $session->setFlashdata('errors', $errors);
             $session->setFlashdata('old', $post);
             return redirect()->back()->withInput();
         }
 
-        // Success redirect
-        $session->setFlashdata('success', 'Account created successfully! Please log in.');
+        $session->setFlashdata('success', 'Account created successfully. Please log in.');
         return redirect()->to('/login');
+    }
+
+    /**
+     * Generate a unique username based on a base string
+     */
+    protected function generateUniqueUsername(string $base, \App\Models\UserModel $userModel)
+    {
+        $base = strtolower(preg_replace('/[^a-z0-9]+/', '-', trim($base)));
+        $base = trim($base, '-');
+        if ($base === '') $base = 'user';
+
+        $username = $base;
+        $suffix = 0;
+
+        while ($userModel->where('username', $username)->first()) {
+            $suffix++;
+            $username = $base . $suffix;
+            if ($suffix > 50) {
+                $username = $base . '-' . substr(bin2hex(random_bytes(3)), 0, 6);
+                break;
+            }
+        }
+        return $username;
     }
 }

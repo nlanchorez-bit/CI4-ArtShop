@@ -12,13 +12,16 @@ class UserModel extends Model
     protected $returnType       = '\App\\Entities\\User';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [
+    protected $allowedFields = [
         'first_name',
         'middle_name',
         'last_name',
+        'display_name',
+        'username',
         'email',
         'password_hash',
-        'type',
+        'role',
+        'is_artist',
         'account_status',
         'email_activated',
         'newsletter',
