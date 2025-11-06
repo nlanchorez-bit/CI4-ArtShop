@@ -148,7 +148,7 @@ class Auth extends BaseController
         $session = session();
         $validation = \Config\Services::validation();
 
-        // Validation rules: field names match the form above
+        // Validation rules
         $validation->setRule('first_name', 'First name', 'required|min_length[2]|max_length[100]');
         $validation->setRule('last_name',  'Last name',  'required|min_length[2]|max_length[100]');
         $validation->setRule('email',      'Email',      'required|valid_email');
@@ -173,29 +173,33 @@ class Auth extends BaseController
             return redirect()->back()->withInput();
         }
 
-        // Prepare data matching DB columns
+        // Prepare display name
         $displayName = trim($post['display_name'] ?? ($post['first_name'] . ' ' . $post['last_name']));
 
+        // Generate username
+        $baseForUsername = $displayName ?: explode('@', $post['email'])[0];
+        $username = $this->generateUniqueUsername($baseForUsername, $userModel);
+
+        // Prepare data for insertion
         $data = [
-            'first_name'     => $post['first_name'],
-            'middle_name'    => $post['middle_name'] ?? null,
-            'last_name'      => $post['last_name'],
-            'display_name'   => $displayName,
-            'email'          => $post['email'],
-            'password_hash'  => password_hash($post['password'], PASSWORD_DEFAULT),
-            // role values in your DB: admin | artist | client
-            'role'           => 'client',
-            'is_artist'      => 0,
-            'account_status' => 1,
+            'first_name'      => $post['first_name'],
+            'middle_name'     => $post['middle_name'] ?? null,
+            'last_name'       => $post['last_name'],
+            'display_name'    => $displayName,
+            'username'        => $username,
+            'email'           => $post['email'],
+            'password_hash'   => password_hash($post['password'], PASSWORD_DEFAULT),
+            'role'            => 'client',
+            'is_artist'       => 0,
+            'account_status'  => 1,
             'email_activated' => 0,
-            'newsletter'     => 1,
+            'newsletter'      => 1,
         ];
 
-        // Insert (insert returns inserted id or false)
+        // Insert user
         $inserted = $userModel->insert($data);
 
         if (! $inserted) {
-            // Try to surface model errors if any
             $errors = $userModel->errors() ?? ['general' => 'Registration failed, please try again.'];
             $session->setFlashdata('errors', $errors);
             $session->setFlashdata('old', $post);
@@ -204,5 +208,28 @@ class Auth extends BaseController
 
         $session->setFlashdata('success', 'Account created successfully. Please log in.');
         return redirect()->to('/login');
+    }
+
+    /**
+     * Generate a unique username based on a base string
+     */
+    protected function generateUniqueUsername(string $base, \App\Models\UserModel $userModel)
+    {
+        $base = strtolower(preg_replace('/[^a-z0-9]+/', '-', trim($base)));
+        $base = trim($base, '-');
+        if ($base === '') $base = 'user';
+
+        $username = $base;
+        $suffix = 0;
+
+        while ($userModel->where('username', $username)->first()) {
+            $suffix++;
+            $username = $base . $suffix;
+            if ($suffix > 50) {
+                $username = $base . '-' . substr(bin2hex(random_bytes(3)), 0, 6);
+                break;
+            }
+        }
+        return $username;
     }
 }
