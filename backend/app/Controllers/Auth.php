@@ -7,165 +7,184 @@ use App\Models\UserModel;
 
 class Auth extends BaseController
 {
-    public function login()
+    /**
+     * Show Login Page
+     */
+    public function showLoginPage()
     {
         $session = session();
-        $request = $this->request;
-        $validation = \Config\Services::validation();
 
-        // If POST, attempt authentication
-        if ($request->getMethod() === 'post') {
-            // validation rules
-            $validation->setRule('email', 'Email', 'required|valid_email');
-            $validation->setRule('password', 'Password', 'required');
-
-            $post = $request->getPost();
-
-            if (! $validation->run($post)) {
-                $session->setFlashdata('errors', $validation->getErrors());
-                $session->setFlashdata('old', $post);
-                return redirect()->back()->withInput();
-            }
-
-            $email = (string) $request->getPost('email');
-            $userModel = new UserModel();
-            $user = $userModel->where('email', $email)->first();
-
-            if (! $user) {
-                $session->setFlashdata('errors', ['email' => 'No account found for that email']);
-                $session->setFlashdata('old', ['email' => $email]);
-                return redirect()->back()->withInput();
-            }
-
-            // Normalize to array (UserModel may return entity or array)
-            $userArr = is_array($user) ? $user : (method_exists($user, 'toArray') ? $user->toArray() : (array) $user);
-
-            $passwordHash = $userArr['password_hash'] ?? '';
-
-            if (! password_verify((string)$request->getPost('password'), $passwordHash)) {
-                $session->setFlashdata('errors', ['password' => 'Incorrect password']);
-                $session->setFlashdata('old', ['email' => $email]);
-                return redirect()->back()->withInput();
-            }
-
-            // authentication successful -> set session
-            $session->set('user', [
-                'id' => $userArr['id'] ?? null,
-                'email' => $userArr['email'] ?? null,
-                'first_name' => $userArr['first_name'] ?? null,
-                'last_name' => $userArr['last_name'] ?? null,
-                'type' => $userArr['type'] ?? 'client',
-                'display_name' => trim(($userArr['first_name'] ?? '') . ' ' . ($userArr['last_name'] ?? '')),
-            ]);
-
-            // Redirect by user type (ADMIN -> /admin)
-            $type = strtolower($userArr['type'] ?? 'client');
-            if ($type === 'admin') {
-                return redirect()->to('/admin');
-            }
-
-            return redirect()->to('/');
+        // Redirect if already logged in
+        if ($session->has('user')) {
+            $type = strtolower($session->get('user')['type'] ?? 'customer');
+            return $type === 'admin'
+                ? redirect()->to('/admin/dashboard')
+                : redirect()->to('/');
         }
 
-        // GET: render login view (passes any flashdata to view)
-        return view('user/login', [
-            'old' => session()->getFlashdata('old') ?? [],
-            'errors' => session()->getFlashdata('errors') ?? [],
+        // Pull flashdata
+        $errors = $session->getFlashdata('errors') ?? [];
+        $old = $session->getFlashdata('old') ?? [];
+        $success = $session->getFlashdata('success') ?? null;
+
+        return view('auth/login', [
+            'errors' => $errors,
+            'old' => $old,
+            'success' => $success
         ]);
     }
 
     /**
-     * Logout user: remove session data, destroy session, remove session cookie,
-     * then redirect to homepage.
+     * Handle Login Logic
      */
-    public function logout()
+    public function login()
     {
+        $request = service('request');
         $session = session();
+        $validation = \Config\Services::validation();
 
-        if ($session->has('user')) {
-            $session->remove('user');
+        // Validate fields
+        $validation->setRule('email', 'Email', 'required|valid_email');
+        $validation->setRule('password', 'Password', 'required');
+
+        $post = $request->getPost();
+
+        // If validation fails
+        if (! $validation->run($post)) {
+            $session->setFlashdata('errors', $validation->getErrors());
+            $session->setFlashdata('old', $post);
+            return redirect()->back()->withInput();
         }
 
-        $session->destroy();
+        $email = $post['email'];
+        $userModel = new UserModel();
 
+        // Check if active user exists
+        $user = $userModel->where('email', $email)->where('account_status', 1)->first();
+        if (! $user) {
+            $session->setFlashdata('errors', ['email' => 'No active account found for that email']);
+            $session->setFlashdata('old', ['email' => $email]);
+            return redirect()->back()->withInput();
+        }
+
+        $userArr = is_array($user) ? $user : $user->toArray();
+
+        // Check password
+        if (! password_verify($post['password'], $userArr['password_hash'] ?? '')) {
+            $session->setFlashdata('errors', ['password' => 'Incorrect password']);
+            $session->setFlashdata('old', ['email' => $email]);
+            return redirect()->back()->withInput();
+        }
+
+        // Save session data
+        $session->set('user', [
+            'id' => $userArr['id'] ?? null,
+            'email' => $userArr['email'] ?? null,
+            'first_name' => $userArr['first_name'] ?? null,
+            'last_name' => $userArr['last_name'] ?? null,
+            'type' => strtolower($userArr['type'] ?? 'customer'),
+        ]);
+
+        // Remember Me option
+        $remember = (bool) $request->getPost('remember');
         $params = session_get_cookie_params();
-        $secure = ! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
-        $path = $params['path'] ?? '/';
-        $domain = $params['domain'] ?? '';
+        $lifetime = $remember ? (30 * 24 * 60 * 60) : 0;
+        setcookie(session_name(), session_id(), $lifetime ? time() + $lifetime : 0, $params['path'], $params['domain'], isset($_SERVER['HTTPS']), true);
 
-        setcookie(session_name(), '', time() - 3600, $path, $domain, $secure, true);
+        // Redirect based on role
+        if ($userArr['type'] === 'admin') {
+            return redirect()->to('/admin/dashboard');
+        }
 
         return redirect()->to('/');
     }
 
-    public function signup()
+    /**
+     * Handle Logout
+     */
+    public function logout()
+    {
+        session()->destroy();
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 3600, $params['path'], $params['domain'], isset($_SERVER['HTTPS']), true);
+
+        return redirect()->to('/login');
+    }
+
+    /**
+     * Show Signup Page
+     */
+    public function showSignupPage()
     {
         $session = session();
-        $request = $this->request;
-        $validation = \Config\Services::validation();
 
-        // Only process when method is POST
-        if ($request->getMethod() === 'post') {
-
-            // Validation rules
-            $validation->setRule('first_name', 'First Name', 'required|min_length[2]');
-            $validation->setRule('last_name', 'Last Name', 'required|min_length[2]');
-            $validation->setRule('email', 'Email', 'required|valid_email');
-            $validation->setRule('password', 'Password', 'required|min_length[8]');
-            $validation->setRule('confirm_password', 'Confirm Password', 'required|matches[password]');
-
-            $post = $request->getPost();
-
-            // If validation fails
-            if (! $validation->run($post)) {
-                $session->setFlashdata('errors', $validation->getErrors());
-                $session->setFlashdata('old', $post);
-                return redirect()->back()->withInput();
-            }
-
-            // Check if email already exists
-            $userModel = new UserModel();
-            $existing = $userModel->where('email', $post['email'])->first();
-
-            if ($existing) {
-                $session->setFlashdata('errors', ['email' => 'Email is already registered.']);
-                $session->setFlashdata('old', $post);
-                return redirect()->back()->withInput();
-            }
-
-            // Prepare Data (matching database table fields)
-            $data = [
-                'first_name'       => $post['first_name'],
-                'middle_name'      => $post['middle_name'] ?? null,
-                'last_name'        => $post['last_name'],
-                'email'            => $post['email'],
-                'password_hash'    => password_hash($post['password'], PASSWORD_DEFAULT),
-                'type'             => 'client',
-                'account_status'   => 1,
-                'email_activated'  => 0,
-                'newsletter'       => isset($post['newsletter']) ? 1 : 0,
-                'gender'           => $post['gender'] ?? null,
-                'profile_image'    => null,
-            ];
-
-            // Insert
-            $inserted = $userModel->insert($data);
-
-            if (! $inserted) {
-                $session->setFlashdata('errors', ['general' => 'Registration failed, please try again.']);
-                $session->setFlashdata('old', $post);
-                return redirect()->back()->withInput();
-            }
-
-            // Success: Redirect to login
-            $session->setFlashdata('success', 'Account created successfully. Please log in.');
-            return redirect()->to('/login');
+        if ($session->has('user')) {
+            return redirect()->to('/');
         }
 
-        // GET Request: Show signup view
-        return view('user/signup', [
-            'old' => $session->getFlashdata('old') ?? [],
-            'errors' => $session->getFlashdata('errors') ?? [],
-        ]);
+        $errors = $session->getFlashdata('errors') ?? [];
+        $old = $session->getFlashdata('old') ?? [];
+
+        return view('auth/signup', ['errors' => $errors, 'old' => $old]);
+    }
+
+    /**
+     * Handle Signup Logic
+     */
+    public function signup()
+    {
+        $request = service('request');
+        $session = session();
+        $validation = \Config\Services::validation();
+
+        // Validation Rules
+        $validation->setRule('first_name', 'First name', 'required|min_length[2]|max_length[100]');
+        $validation->setRule('last_name', 'Last name', 'required|min_length[2]|max_length[100]');
+        $validation->setRule('email', 'Email', 'required|valid_email');
+        $validation->setRule('password', 'Password', 'required|min_length[6]');
+        $validation->setRule('password_confirm', 'Password Confirmation', 'required|matches[password]');
+
+        $post = $request->getPost();
+
+        // If invalid
+        if (! $validation->run($post)) {
+            $session->setFlashdata('errors', $validation->getErrors());
+            $session->setFlashdata('old', $post);
+            return redirect()->back()->withInput();
+        }
+
+        $userModel = new UserModel();
+
+        // Prevent duplicate email
+        if ($userModel->where('email', $post['email'])->first()) {
+            $session->setFlashdata('errors', ['email' => 'Email already registered']);
+            $session->setFlashdata('old', $post);
+            return redirect()->back()->withInput();
+        }
+
+        // Prepare data for insertion
+        $data = [
+            'first_name' => $post['first_name'],
+            'middle_name' => $post['middle_name'] ?? null, // nullable
+            'last_name' => $post['last_name'],
+            'email' => $post['email'],
+            'password_hash' => password_hash($post['password'], PASSWORD_DEFAULT),
+            'type' => 'customer',
+            'account_status' => 1,
+            'email_activated' => 1,
+        ];
+
+        // Insert to database
+        $inserted = $userModel->insert($data);
+
+        if (! $inserted) {
+            $session->setFlashdata('errors', ['general' => 'Could not create account. Please try again.']);
+            $session->setFlashdata('old', $post);
+            return redirect()->back()->withInput();
+        }
+
+        // Success redirect
+        $session->setFlashdata('success', 'Account created successfully! Please log in.');
+        return redirect()->to('/login');
     }
 }
